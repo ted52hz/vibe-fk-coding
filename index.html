@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Named Entity Recognition Visualization</title>
+    <title>NER VIZ</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -51,7 +51,7 @@
         </header>
 
         <!-- Controls Section -->
-        <div class="bg-white p-4 rounded-lg shadow-md mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="bg-white p-4 rounded-lg shadow-md mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 flex-wrap">
              <!-- File Upload -->
             <div class="flex-grow">
                 <label for="csvFile" class="block mb-2 text-sm font-medium text-gray-900">Tải lên file CSV</label>
@@ -72,6 +72,24 @@
             <div class="w-full md:w-auto">
                 <label for="rowsPerPage" class="block mb-2 text-sm font-medium text-gray-900">Dòng / trang</label>
                 <input type="number" id="rowsPerPage" value="10" min="1" max="100" class="w-full md:w-24 p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" disabled>
+            </div>
+            <!-- Filter Options -->
+            <div id="filterOptions" class="w-full flex flex-col sm:flex-row sm:items-center gap-4 pt-4 border-t border-slate-200 mt-4">
+                <span class="text-sm font-medium text-gray-900 flex-shrink-0">Lọc theo thực thể:</span>
+                <div class="flex flex-wrap gap-x-6 gap-y-2">
+                    <div class="flex items-center">
+                        <input id="filterVenue" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" disabled>
+                        <label for="filterVenue" class="ml-2 text-sm font-medium text-gray-900 cursor-pointer">Có Venue</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input id="filterHouseNumber" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" disabled>
+                        <label for="filterHouseNumber" class="ml-2 text-sm font-medium text-gray-900 cursor-pointer">Có Số nhà</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input id="filterStreet" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" disabled>
+                        <label for="filterStreet" class="ml-2 text-sm font-medium text-gray-900 cursor-pointer">Có Tên đường</label>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -132,6 +150,9 @@
             const prevPageBtn = document.getElementById('prevPage');
             const nextPageBtn = document.getElementById('nextPage');
             const legend = document.getElementById('legend');
+            const filterVenueCheckbox = document.getElementById('filterVenue');
+            const filterHouseNumberCheckbox = document.getElementById('filterHouseNumber');
+            const filterStreetCheckbox = document.getElementById('filterStreet');
 
             // --- Application State ---
             let fullData = [];
@@ -141,16 +162,16 @@
 
             // --- Event Listeners ---
             csvFileInput.addEventListener('change', handleFileSelect, false);
-            searchInput.addEventListener('input', handleSearch);
+            searchInput.addEventListener('input', applyFilters);
             rowsPerPageInput.addEventListener('change', handleRowsChange);
             prevPageBtn.addEventListener('click', () => changePage(-1));
             nextPageBtn.addEventListener('click', () => changePage(1));
+            filterVenueCheckbox.addEventListener('change', applyFilters);
+            filterHouseNumberCheckbox.addEventListener('change', applyFilters);
+            filterStreetCheckbox.addEventListener('change', applyFilters);
 
             /**
              * A simple, built-in CSV parser to avoid external libraries.
-             * Handles quoted fields containing commas.
-             * @param {string} text The raw CSV text.
-             * @returns {{data: object[], errors: any[]}} Parsed data and errors.
              */
             function parseCSV(text) {
                 const result = [];
@@ -164,7 +185,6 @@
                     
                     const values = [];
                     let currentLine = lines[i];
-                    // Regex to handle comma-separated values, including those in quotes.
                     const regex = /("([^"]|"")*"|[^,]*)(,|$)/g;
                     let match;
                     
@@ -175,7 +195,6 @@
                          }
                          values.push(value);
                          if (match[0] === ',' || match[0] === '') { 
-                            // This handles empty fields correctly
                             if(match.index === regex.lastIndex) regex.lastIndex++;
                          }
                          if (regex.lastIndex === currentLine.length) break;
@@ -189,7 +208,6 @@
                 }
                 return { data: result, errors: [] };
             }
-
 
             /**
              * Handles file selection, reads the file, and triggers parsing.
@@ -212,7 +230,6 @@
                          return;
                     }
 
-                    // Check for required columns
                     const firstRow = results.data[0];
                     const requiredColumns = ['_id', 'address', 'house_number', 'street', 'venue'];
                     const hasAllColumns = firstRow && requiredColumns.every(col => col in firstRow);
@@ -223,11 +240,9 @@
                     }
 
                     fullData = results.data;
-                    filteredData = [...fullData];
-                    currentPage = 1;
                     rowsPerPage = parseInt(rowsPerPageInput.value, 10);
                     enableControls();
-                    render();
+                    applyFilters(); // Apply initial filters and render
                 };
                 reader.onerror = function() {
                     messageArea.innerHTML = `<p class="text-red-500">Không thể đọc file.</p>`;
@@ -235,22 +250,58 @@
                 reader.readAsText(file);
             }
             
+            /**
+             * Enables control elements after data is loaded.
+             */
             function enableControls() {
                 searchInput.disabled = false;
                 rowsPerPageInput.disabled = false;
                 legend.classList.remove('hidden');
+                filterVenueCheckbox.disabled = false;
+                filterHouseNumberCheckbox.disabled = false;
+                filterStreetCheckbox.disabled = false;
             }
 
-            function handleSearch() {
+            /**
+             * Applies all active filters (search and checkboxes) and re-renders the view.
+             */
+            function applyFilters() {
                 const searchTerm = searchInput.value.toLowerCase();
-                filteredData = fullData.filter(row => {
-                    const idMatch = row._id ? row._id.toLowerCase().includes(searchTerm) : false;
-                    const addressMatch = row.address ? row.address.toLowerCase().includes(searchTerm) : false;
-                    return idMatch || addressMatch;
-                });
-                currentPage = 1;
+                const hasVenue = filterVenueCheckbox.checked;
+                const hasHouseNumber = filterHouseNumberCheckbox.checked;
+                const hasStreet = filterStreetCheckbox.checked;
+
+                let tempFilteredData = [...fullData];
+
+                // 1. Filter by search term
+                if (searchTerm) {
+                    tempFilteredData = tempFilteredData.filter(row => {
+                        const idMatch = row._id ? row._id.toLowerCase().includes(searchTerm) : false;
+                        const addressMatch = row.address ? row.address.toLowerCase().includes(searchTerm) : false;
+                        return idMatch || addressMatch;
+                    });
+                }
+
+                // 2. Filter by Venue checkbox
+                if (hasVenue) {
+                    tempFilteredData = tempFilteredData.filter(row => row.venue && row.venue.trim() !== '');
+                }
+
+                // 3. Filter by House Number checkbox
+                if (hasHouseNumber) {
+                    tempFilteredData = tempFilteredData.filter(row => row.house_number && row.house_number.trim() !== '');
+                }
+
+                // 4. Filter by Street checkbox
+                if (hasStreet) {
+                    tempFilteredData = tempFilteredData.filter(row => row.street && row.street.trim() !== '');
+                }
+                
+                filteredData = tempFilteredData;
+                currentPage = 1; // Reset to first page after any filter change
                 render();
             }
+
 
             function handleRowsChange() {
                 rowsPerPage = parseInt(rowsPerPageInput.value, 10);
