@@ -1,372 +1,361 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Mobile Screen Event Diagram (Events inside Screen box)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
-  <style>
-    html,body {background: #eaf0fb; font-family: 'Montserrat', Arial, sans-serif; color: #26324B; margin: 0;}
-    .container { max-width: 1200px; margin: 24px auto 20px;}
-    .flexrow { display: flex; align-items: flex-start; justify-content: center; gap: 45px;}
-    .panel { min-width: 295px; max-width: 400px; background: #fff; border-radius: 12px; box-shadow: 0 2px 26px #79899a19; padding: 17px 18px 15px 18px;}
-    h1 { margin-top: 2px; font-size: 1.26rem; font-weight: bold; letter-spacing: -.5px; }
-    label { font-size: 1.06em; }
-    textarea { width: 100%; min-height: 68px; font-size: 1.02em; resize: vertical; padding: 7px; margin: 6px 0 9px 0;}
-    button, .csv-btn, .small-btn {
-      background: #296eff; color: #fff; border: none; font-size: 1.01em;
-      font-family: inherit; padding: 7px 16px; border-radius: 7px; cursor: pointer;
-      margin: 4px 11px 7px 0; outline: none; transition: background .2s;
-    }
-    button:active,.csv-btn:active{background:#1846a7;}
-    button:disabled, .small-btn:disabled {background: #bed2fa;color:#678;}
-    .csv-btn, label[for="csvInput"]{display:inline-block;}
-    input[type="file"]{display:none;}
-    .file-name {font-size:0.96em;color:#5a709b;}
-    .error-msg {color: #db3434;font-size:0.98em;}
-    .hint {font-size: 0.98em; color: #6192cb;}
-    .mobile-phone-frame {
-      background: linear-gradient(105deg, #e8e6fd 60%, #d4edff 98%);
-      width: 340px; min-width: 180px; height: 675px; padding: 19px 17px 24px 17px;
-      border-radius: 29px; box-shadow: 0 9px 52px #4d77ff10,0 1.5px 0px #e2eaff;
-      display: flex; align-items: center; justify-content: center; z-index: 3; position: relative;
-    }
-    .mobile-bezell {position: absolute; left: 50%; width: 80px; height: 9px; background: #dbdeef; top: 11px;
-      border-radius:13px; transform:translateX(-50%); z-index:10;}
-    .mobile-screen {
-      width: 300px; min-width: 150px; height: 630px; background: #fff; border-radius: 24px; box-shadow: 0 1.5px 10px #aaaaef18;
-      overflow: hidden; position: relative; display: flex; flex-direction: column; justify-content: flex-start; animation: fadeScreen 0.47s;
-    }
-    @keyframes fadeScreen {from { opacity: 0; transform: scale(0.97);} to   { opacity: 1; transform: none;}}
-    .app-header {width:100%;background: #296eff; color:#fff; font-weight:600; text-align:center; letter-spacing:0.5px; padding:13px 0 9px 0; font-size: 1.15em;
-      border-top-left-radius: 24px; border-top-right-radius: 24px; position:relative; box-shadow:0 1.5px 0 #d1e8fa; z-index:2;}
-    .app-header .stepbadge {background: #fff2; color: #fff; font-size: 0.97em; margin-left: 8px; border-radius: 9px; padding: 2.5px 8px; font-weight: 500;letter-spacing: .1px;}
-    .screen-content {
-      flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:340px; padding:22px 10px 40px 10px; font-size: 1.10em;
-      animation: fadeIn .52s; z-index:2; position:relative; background: #ecf2ff;
-    }
-    @keyframes fadeIn {from { opacity:0; transform: translateY(30px);}to { opacity: 1; transform: none;}}
-    .screen-title {
-      font-size: 1.23em; font-weight: 700; color: #296eff; margin: 35px 0 15px 0; letter-spacing: -.5px; text-shadow: 0 1px 16px #e7e7ff3f;
-    }
-    .event-btn {margin-top: 32px; padding: 18px 38px; background: linear-gradient(89deg,#ffbe3b 60%, #ffd25b 120%);
-      color: #26324B; font-weight: 700; border: none; border-radius: 12px; box-shadow: 0 3px 16px #ffe69947;
-      font-size: 1.09em; letter-spacing: .8px; cursor: pointer; outline: none;transition: background 0.19s, box-shadow 0.19s;}
-    .event-btn:active {background: linear-gradient(90deg,#f6a706 70%, #ffe246 120%);}
-    .event-info {margin-top: 20px; color: #517db6; font-size: 0.99em;}
-    .flow-controls {position: absolute; bottom: 15px; left: 0;right:0;display:flex;justify-content:center;gap:6px;z-index:3;}
-    .small-btn {background: #f3f7ff; color: #296eff; font-size: 0.96em; font-weight: 600; padding: 5px 14px; margin: 0; border-radius: 8px;
-      border:1.4px solid #d3eaff; box-shadow:0 1px 1.5px #eee6; outline: none; cursor: pointer; transition: background .18s;}
-    .small-btn.active, .small-btn:hover {background: #eef5ff;}
-    .small-btn:disabled {background:#ecedee;color:#b0bcd7;}
-    .progress-bar-bg {width:88%; margin:10px auto 0 auto; height:8px; border-radius:8px;background:#dbe9fe;overflow:hidden;}
-    .progress-bar-inner {height:100%; border-radius:7px;background:linear-gradient(90deg, #296eff 50%, #cfdcff 110%);transition: width 0.25s;}
-    .graph-diagram-panel {min-width:350px;max-width:600px;width:100%;}
-    .graph-box {margin: 0; border-radius: 12px;background: #f7faff;min-height:320px;padding:15px 0 0 0; max-width:570px;}
-    .diagram-legend {
-      font-size: 0.97em;color:#64669a;margin:7px 0 3px 12px;padding-bottom:3px;
-    }
-    @media (max-width:1200px) {.flexrow{gap:16px;}.panel{max-width:99vw}.graph-diagram-panel{max-width:99vw;min-width:0;width:99vw;}}
-    @media (max-width:950px) { .flexrow{flex-direction:column;align-items:center;}}
-    @media (max-width:620px) {.panel,.graph-diagram-panel{padding:7px 2vw;}.mobile-phone-frame{width:99vw; min-width:120px;}}
-    @media (max-width:450px){.mobile-phone-frame{width:97vw;}.mobile-screen{width:94vw;}}
-  </style>
-</head>
-<body>
-<div class="container">
-  <div class="flexrow">
-    <div class="panel">
-      <h1>Nhập hành trình (screen,event)</h1>
-      <form id="inputForm">
-        <label for="dataInput">Mỗi dòng: <b>screen,event</b> &nbsp;(như: Home,ClickLogin)</label>
-        <textarea id="dataInput" placeholder="screen1,event1&#10;screen2,event2"></textarea>
-        <button type="submit">Bắt đầu mô phỏng</button>
-        <button id="sampleBtn" type="button">Ví dụ mẫu</button>
-      </form>
-      <div style="margin:10px 0 5px 0;">
-        <label for="csvInput" class="csv-btn">Chọn file CSV</label>
-        <input type="file" id="csvInput" accept=".csv,text/csv" />
-        <span class="file-name" id="csvFileName"></span>
-      </div>
-      <div class="hint">
-        Mỗi dòng là <i>screen,event</i>.<br>Có thể nhập tay hoặc upload CSV (2 cột screen,event).
-      </div>
-      <div class="error-msg" id="errorMsg"></div>
-      <div style="color:#539; margin-top:12px;font-size:0.98em;">
-        <b>CSV mẫu:</b>
-          <span style="white-space:pre-line;background:#f7f9fd;border-radius:7px;display:inline-block;padding:6px 7px 3px 9px;">screen,event
-Home,OpenApp
-Home,ClickSearch
-Search,InputQuery
-Search,Submit
-Result,SelectItem
-Detail,ScrollDown
-Detail,ClickBack
-Result,ClickBack
-Home,Logout</span>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:22px;">
-      <div class="mobile-phone-frame">
-        <div class="mobile-bezell"></div>
-        <div class="mobile-screen" id="appScreen"></div>
-      </div>
-      <div class="graph-diagram-panel">
-        <div class="diagram-legend">
-          <b>Sơ đồ Flow:</b>
-          <span style="display:inline-block;background:#296eff;border-radius:7px;padding:2px 7px;color:#fff;">Screen</span>
-          <span style="display:inline-block;background:#ffd93b;border-radius:7px;padding:2px 7px;color:#26324B;">Event</span>
-          <span style="color:#296eff;">(Step sáng là bước hiện tại)</span>
-        </div>
-        <div class="graph-box" id="graphBox">
-          <svg id="graphSVG" width="100%" height="330"></svg>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<script>
-  // --- Parse và flow ---
-  const dataInput = document.getElementById('dataInput');
-  const errorMsg = document.getElementById('errorMsg');
-  const form = document.getElementById('inputForm');
-  const csvInput = document.getElementById("csvInput");
-  const fileNameBox = document.getElementById("csvFileName");
-  const appScreen = document.getElementById('appScreen');
-  const graphSVG = document.getElementById('graphSVG');
-
-  let flow = [];   // [{screen, event}]
-  let step = 0;    // current index
-  let playing = false, playTimer = null;
-
-  // ---------- FLOW SIMULATOR ----------
-  function parseInput(str) {
-    const lines = str
-      .split('\n')
-      .map(l=>l.trim())
-      .filter(l=>l && !l.startsWith('#'));
-    const result = [];
-    for(let i=0;i<lines.length;i++) {
-      const parts = lines[i].split(',');
-      if(parts.length!==2) throw new Error(`Dòng ${i+1} không hợp lệ. Định dạng: screen,event`);
-      result.push({screen: parts[0].trim(), event: parts[1].trim()});
-    }
-    return result;
-  }
-  function renderScreen(idx) {
-    if(!flow || flow.length===0|| idx<0) return;
-    if(idx >= flow.length) idx = flow.length - 1;
-    const {screen,event} = flow[idx];
-    let nextScreenLabel = (flow[idx+1]) ? (flow[idx+1].screen) : '';
-    let done = idx === flow.length-1;
-    appScreen.innerHTML = `
-      <div class="app-header">
-        <span>ỨNG DỤNG DEMO</span>
-        <span class="stepbadge">${idx+1}/${flow.length}</span>
-      </div>
-      <div class="screen-content">
-        <div class="screen-title">Màn hình: <span style="color:#1836b3">${screen}</span></div>
-        <button class="event-btn" id="eventBtn" ${done?'style="background:#ececec;color:#aaa;cursor:not-allowed;"':''}>
-          ${event}
-        </button>
-        <div class="event-info">
-          ${ done ? "<b>Flow kết thúc.</b>" :
-              `Event này: <b>${event}</b><br>Sau đó chuyển sang màn hình: <b>${nextScreenLabel}</b>`
-          }
-        </div>
-      </div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-inner" style="width:${((idx+1)/flow.length*100).toFixed(1)}%"></div>
-      </div>
-      <div class="flow-controls">
-        <button class="small-btn" id="btnPrev" ${idx===0 ? 'disabled':''} title="Trở về trước">&lt; Trước</button>
-        <button class="small-btn" id="btnNext" ${done ? 'disabled':''} title="Tiếp theo">&gt; Tiếp</button>
-        <button class="small-btn" id="btnPlay" ${playing||(done) ? 'disabled':''} title="Tua nhanh">▶️ Auto</button>
-        <button class="small-btn" id="btnRestart" ${idx<=0?'disabled':''} title="Quay lại đầu">⟳ Đầu flow</button>
-      </div>
-    `;
-    // Nút
-    const btnNext = appScreen.querySelector("#btnNext");
-    const btnPrev = appScreen.querySelector("#btnPrev");
-    const btnRestart = appScreen.querySelector("#btnRestart");
-    const btnPlay = appScreen.querySelector("#btnPlay");
-    const eventBtn = appScreen.querySelector("#eventBtn");
-    if (btnPrev) btnPrev.onclick = function(){step--;updateSync()};
-    if (btnNext) btnNext.onclick = function(){step++;updateSync()};
-    if (btnRestart) btnRestart.onclick = function(){step=0;updateSync()};
-    if (eventBtn && !done) eventBtn.onclick = function(){step++;updateSync()};
-    if (btnPlay) btnPlay.onclick = function(){playing = true;autoPlay();};
-  }
-  function updateSync() {
-    clearTimeout(playTimer); playing = false;
-    if(step < 0) step = 0;
-    if(step >= flow.length) step = flow.length-1;
-    renderScreen(step);
-    drawGraph(flow, step);
-  }
-  function autoPlay() {
-    if(step < flow.length-1) {
-      step++; renderScreen(step); drawGraph(flow, step);
-      playTimer = setTimeout(autoPlay, 700);
-    } else {
-      playing = false;
-      renderScreen(step); drawGraph(flow, step);
-    }
-  }
-  function stopPlaying(){playing=false;clearTimeout(playTimer);}
-  form.onsubmit = function(e){
-    e.preventDefault(); errorMsg.textContent = ''; fileNameBox.textContent='';
-    stopPlaying();
-    try {
-      const data = parseInput(dataInput.value);
-      if(data.length<1) throw new Error("Bạn cần nhập ít nhất 1 dòng!");
-      flow = data; step = 0;
-      updateSync();
-    }catch(err){ errorMsg.textContent = err.message; showEmptyPhone(); drawGraph([],0);}
-  }
-  document.getElementById('sampleBtn').onclick = function(){
-    dataInput.value = [
-      "Home,OpenApp",
-      "Home,ClickSearch",
-      "Search,InputQuery",
-      "Search,Submit",
-      "Result,SelectItem",
-      "Detail,ScrollDown",
-      "Detail,ClickBack",
-      "Result,ClickBack",
-      "Home,Logout"
-    ].join('\n');
-    errorMsg.textContent=''; fileNameBox.textContent = '';
-    stopPlaying();
-    form.dispatchEvent(new Event('submit'));
-  };
-  csvInput.addEventListener("change", function(e) {
-    const file = csvInput.files && csvInput.files[0];
-    errorMsg.textContent = '';
-    if (!file) return;
-    fileNameBox.textContent = '📄 ' + file.name;
-    stopPlaying();
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      try {
-        const csvText = ev.target.result;
-        const lines = csvText.split("\n").map(l=>l.trim()).filter(l=>l);
-        if(lines.length<1) throw Error("File CSV không có dữ liệu.");
-        let fields = []; let startLine = 1;
-        if (lines[0].toLowerCase().includes('screen') && lines[0].toLowerCase().includes('event')) {
-          fields = lines[0].split(',').map(h=>h.trim().toLowerCase());
-        } else {fields = ['screen','event']; startLine = 0;}
-        let scIdx = fields.findIndex(f=>f=='screen'), evIdx = fields.findIndex(f=>f=='event');
-        if(scIdx==-1 || evIdx==-1) throw Error("File CSV phải có 2 cột: screen,event");
-        const result = [];
-        for (let i=startLine; i<lines.length;i++) {
-          let parts = lines[i].split(',');
-          if(parts.length < Math.max(scIdx, evIdx)+1) continue;
-          let scr = parts[scIdx].trim(),
-              ev = parts[evIdx].trim();
-          if(scr && ev) result.push({screen:scr, event:ev});
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình Highlight Text (NER)</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PapaParse for CSV parsing is moved to the end of the body -->
+    <style>
+        /* Custom styles for highlights */
+        .highlight {
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: 500;
         }
-        if(result.length===0) throw Error("Không tìm thấy dữ liệu hợp lệ trong file CSV.");
-        dataInput.value = result.map(c=>`${c.screen},${c.event}`).join('\n');
-        flow = result; step = 0; updateSync();
-      } catch(err){ errorMsg.textContent = err.message; showEmptyPhone();drawGraph([],0);}
-    };
-    reader.onerror = function() { errorMsg.textContent = "Không thể đọc file!"; showEmptyPhone();drawGraph([],0);}
-    reader.readAsText(file,"utf-8");
-  });
-  function showEmptyPhone(){
-    appScreen.innerHTML = `<div class="screen-content" style="background:#faf7f8;justify-content:center;"><span style="color:#eeb334;font-size:7em;opacity:.13">📱</span></div>`;
-  }
+        .highlight.house_number {
+            background-color: #bae6fd; /* light blue */
+            color: #0c4a6e;
+        }
+        .highlight.street {
+            background-color: #bbf7d0; /* light green */
+            color: #14532d;
+        }
+        .highlight.venue {
+            background-color: #fef08a; /* light yellow */
+            color: #713f12;
+        }
+        /* Basic scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800">
 
-  // --------- FLOW DIAGRAM SVG (event in screen box) ---------
-  const SCREEN_COLOR = "#296eff", EVENT_COLOR = "#ffd93b",
-        EVENT_TEXT_COLOR = "#444", SCREEN_TEXT_COLOR = "#fff",
-        ARROW_COLOR = "#7eaee6", HIGHLIGHT_SCREEN="#00f1cd",
-        HIGHLIGHT_EVENT="#ff6b00", EVENT_STROKE="#f3b900";
+    <div id="app" class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-700">Trình Highlight Text (NER)</h1>
+            <p class="text-slate-500 mt-2">Tải lên file CSV để xem các thực thể được highlight trong địa chỉ.</p>
+        </header>
 
-  function drawGraph(list, highlightIdx=0) {
-    if (!list || list.length === 0) {graphSVG.innerHTML = "";return;}
-    // Gom event theo từng screen
-    const screenOrder = [], screenEventMap = {};
-    list.forEach((item, idx) => {
-      if(!screenEventMap[item.screen]) {
-        screenOrder.push(item.screen);
-        screenEventMap[item.screen] = [];
-      }
-      screenEventMap[item.screen].push({
-        event: item.event,
-        globalIdx: idx, // vị trí trong data tổng -- phục vụ highlight
-      });
-    });
-    // Tính layout
-    const screenCount = screenOrder.length;
-    const colW = Math.max(125, 500/(screenCount+0.15));
-    const boxW = 94, boxPadTop = 34, boxPadBottom = 28; // screen box
-    const evtR = 17, evtPadY = 36, evtBoxPadSide = 11;
-    // box tính toán vị trí
-    const maxEvtPerScreen = Math.max(...screenOrder.map(s=>screenEventMap[s].length));
-    let svgW = Math.max(500, screenCount * (boxW+evtBoxPadSide*2)+24);
-    let svgH = (boxPadTop + maxEvtPerScreen*evtPadY + boxPadBottom + 15);
-    // Build hashmap: event globalIdx -> (screen, pos X+Y)
-    const eventNodesPos = [];
-    // 1. Vẽ Screen box, gom event trong
-    let svg = '';
-    let screenXMap = {}; // screen: x
-    screenOrder.forEach((scr, sIdx) => {
-      const x = 24 + sIdx*(boxW+evtBoxPadSide*2+8);
-      screenXMap[scr] = x;
-      const y = boxPadTop;
-      const boxH = screenEventMap[scr].length*evtPadY + boxPadTop + boxPadBottom;
-      const highlightScreen = (screenEventMap[scr].some(ev=>ev.globalIdx===highlightIdx));
-      // box rect
-      svg += `<rect x="${x}" y="${y-boxPadTop}" width="${boxW+evtBoxPadSide*2}" height="${boxH}" rx="17"
-        fill="${highlightScreen?HIGHLIGHT_SCREEN:SCREEN_COLOR}" opacity="0.21" />`;
-      svg += `<rect x="${x}" y="${y-boxPadTop}" width="${boxW+evtBoxPadSide*2}" height="${boxH}" rx="17"
-        fill="none" stroke="${SCREEN_COLOR}" stroke-width="2"/>`;
-      // Screen label (title)
-      svg += `<text x="${x+(boxW+evtBoxPadSide*2)/2}" y="${y-8}" text-anchor="middle" fill="#1836b3" font-weight="bold" font-size="1.09em">${scr}</text>`;
-      // Các event trong box (theo slotY)
-      screenEventMap[scr].forEach((ev, eLocalIdx) => {
-        const ex = x+(boxW+evtBoxPadSide*2)/2, ey = y + evtPadY * eLocalIdx;
-        eventNodesPos[ev.globalIdx] = {x: ex, y: ey, screen: scr};
-        // event node
-        const isCurrentEvt = (ev.globalIdx === highlightIdx);
-        svg += `<circle cx="${ex}" cy="${ey}" r="${evtR}" fill="${isCurrentEvt?HIGHLIGHT_EVENT:EVENT_COLOR}"
-            stroke="${isCurrentEvt?HIGHLIGHT_EVENT:EVENT_STROKE}" stroke-width="2.2"/>
-            <text x="${ex}" y="${ey+5.6}" text-anchor="middle" fill="${EVENT_TEXT_COLOR}" font-size="0.98em" font-family="Montserrat">${ev.event}</text>`;
-        // highlight ring?
-        if(isCurrentEvt)
-          svg += `<circle cx="${ex}" cy="${ey}" r="${evtR+7}" fill="none" stroke="${HIGHLIGHT_EVENT}" stroke-width="2"/>`;
-      });
-    });
-    // 2. Vẽ arrow từ event[i] -> event[i+1]
-    for(let i=0;i<list.length-1;i++) {
-      const a = eventNodesPos[i], b = eventNodesPos[i+1];
-      svg += drawArrow(a.x, a.y+evtR, b.x, b.y-evtR, (i+1)===highlightIdx);
-    }
-    // 3. Thêm nhãn Step (start/end)
-    // Optional, để đơn giản ux
-    //
-    graphSVG.setAttribute('height', svgH);
-    graphSVG.setAttribute('width', svgW);
-    graphSVG.innerHTML = svg;
-  }
+        <!-- Controls Section -->
+        <div class="bg-white p-4 rounded-lg shadow-md mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+             <!-- File Upload -->
+            <div class="flex-grow">
+                <label for="csvFile" class="block mb-2 text-sm font-medium text-gray-900">Tải lên file CSV</label>
+                <input type="file" id="csvFile" accept=".csv" class="block w-full text-sm text-slate-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100 cursor-pointer
+                "/>
+            </div>
+            <!-- Search Input -->
+            <div class="flex-grow">
+                <label for="searchInput" class="block mb-2 text-sm font-medium text-gray-900">Tìm kiếm</label>
+                <input type="text" id="searchInput" placeholder="Tìm theo ID, địa chỉ,..." class="w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" disabled>
+            </div>
+            <!-- Rows per page -->
+            <div class="w-full md:w-auto">
+                <label for="rowsPerPage" class="block mb-2 text-sm font-medium text-gray-900">Dòng / trang</label>
+                <input type="number" id="rowsPerPage" value="10" min="1" max="100" class="w-full md:w-24 p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" disabled>
+            </div>
+        </div>
+        
+        <!-- Legend -->
+        <div id="legend" class="hidden flex flex-wrap gap-4 mb-6 p-4 bg-white rounded-lg shadow-sm">
+            <span class="text-sm font-semibold">Chú thích:</span>
+            <span class="highlight house_number">house_number</span>
+            <span class="highlight street">street</span>
+            <span class="highlight venue">venue</span>
+        </div>
 
-  function drawArrow(x1, y1, x2, y2, highlight=false) {
-    const len = 11;
-    const color = highlight?'#e17f23':ARROW_COLOR;
-    const angle = Math.atan2(y2-y1, x2-x1);
-    const xA = x2 - len * Math.cos(angle - Math.PI/8);
-    const yA = y2 - len * Math.sin(angle - Math.PI/8);
-    const xB = x2 - len * Math.cos(angle + Math.PI/8);
-    const yB = y2 - len * Math.sin(angle + Math.PI/8);
-    return `
-      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${highlight?3:2}"/>
-      <polygon points="${x2},${y2} ${xA},${yA} ${xB},${yB}" fill="${color}" />
-    `;
-  }
-  // Lần đầu tiên, tự chạy demo
-  document.getElementById('sampleBtn').click();
-</script>
+        <!-- Data Table Section -->
+        <div id="tableContainer" class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-500">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 w-1/4">_id</th>
+                            <th scope="col" class="px-6 py-3 w-3/4">Địa chỉ đã được Highlight</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <!-- Data rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+             <!-- Initial message / Loading state -->
+            <div id="messageArea" class="p-8 text-center text-slate-500">
+                <p>Vui lòng chọn một file CSV để bắt đầu.</p>
+            </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div id="paginationControls" class="hidden mt-6 flex flex-col md:flex-row items-center justify-between">
+            <span id="pageInfo" class="text-sm text-slate-600 mb-2 md:mb-0"></span>
+            <div class="inline-flex rounded-md shadow-sm">
+                <button id="prevPage" class="px-4 py-2 text-sm font-medium text-blue-700 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-blue-700">
+                    Trang trước
+                </button>
+                <button id="nextPage" class="px-4 py-2 text-sm font-medium text-blue-700 bg-white border-t border-b border-r border-gray-200 rounded-r-lg hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-blue-700">
+                    Trang tiếp
+                </button>
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- Scripts moved to the end of the body for better loading performance and to prevent errors -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.3.2/papaparse.min.js"></script>
+    <script>
+        // Wait for the DOM to be fully loaded before running the script
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- DOM Elements ---
+            const csvFileInput = document.getElementById('csvFile');
+            const searchInput = document.getElementById('searchInput');
+            const rowsPerPageInput = document.getElementById('rowsPerPage');
+            const dataTableBody = document.getElementById('dataTableBody');
+            const messageArea = document.getElementById('messageArea');
+            const paginationControls = document.getElementById('paginationControls');
+            const pageInfo = document.getElementById('pageInfo');
+            const prevPageBtn = document.getElementById('prevPage');
+            const nextPageBtn = document.getElementById('nextPage');
+            const legend = document.getElementById('legend');
+
+            // --- Application State ---
+            let fullData = [];
+            let filteredData = [];
+            let currentPage = 1;
+            let rowsPerPage = 10;
+
+            // --- Event Listeners ---
+            csvFileInput.addEventListener('change', handleFileSelect, false);
+            searchInput.addEventListener('input', handleSearch);
+            rowsPerPageInput.addEventListener('change', handleRowsChange);
+            prevPageBtn.addEventListener('click', () => changePage(-1));
+            nextPageBtn.addEventListener('click', () => changePage(1));
+
+            /**
+             * Handles the file selection and starts the parsing process.
+             */
+            function handleFileSelect(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                messageArea.innerHTML = `<p>Đang xử lý file, vui lòng chờ...</p>`;
+                messageArea.classList.remove('hidden');
+                dataTableBody.innerHTML = '';
+                
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        // Check for required columns
+                        const requiredColumns = ['_id', 'address', 'house_number', 'street', 'venue'];
+                        const hasAllColumns = requiredColumns.every(col => results.meta.fields.includes(col));
+                        
+                        if (!hasAllColumns) {
+                            messageArea.innerHTML = `<p class="text-red-500">Lỗi: File CSV phải chứa các cột: ${requiredColumns.join(', ')}</p>`;
+                            return;
+                        }
+
+                        fullData = results.data;
+                        filteredData = [...fullData];
+                        currentPage = 1;
+                        rowsPerPage = parseInt(rowsPerPageInput.value, 10);
+                        enableControls();
+                        render();
+                    },
+                    error: function(error) {
+                        messageArea.innerHTML = `<p class="text-red-500">Đã xảy ra lỗi khi đọc file: ${error.message}</p>`;
+                    }
+                });
+            }
+            
+            /**
+             * Enables the control inputs after data is loaded.
+             */
+            function enableControls() {
+                searchInput.disabled = false;
+                rowsPerPageInput.disabled = false;
+                legend.classList.remove('hidden');
+            }
+
+            /**
+             * Filters data based on search input and re-renders the table.
+             */
+            function handleSearch() {
+                const searchTerm = searchInput.value.toLowerCase();
+                filteredData = fullData.filter(row => {
+                    // Search in _id and address. Add more fields if needed.
+                    const idMatch = row._id ? row._id.toLowerCase().includes(searchTerm) : false;
+                    const addressMatch = row.address ? row.address.toLowerCase().includes(searchTerm) : false;
+                    return idMatch || addressMatch;
+                });
+                currentPage = 1;
+                render();
+            }
+
+            /**
+             * Updates rows per page and re-renders the table.
+             */
+            function handleRowsChange() {
+                rowsPerPage = parseInt(rowsPerPageInput.value, 10);
+                currentPage = 1;
+                render();
+            }
+            
+            /**
+             * Changes the current page.
+             * @param {number} direction - -1 for previous, 1 for next.
+             */
+            function changePage(direction) {
+                const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+                const newPage = currentPage + direction;
+                if (newPage >= 1 && newPage <= totalPages) {
+                    currentPage = newPage;
+                    render();
+                }
+            }
+            
+            /**
+             * Creates the highlighted HTML string for an address.
+             * @param {object} row - The data row object.
+             * @returns {string} - The HTML string with highlighted entities.
+             */
+            function highlightAddress(row) {
+                const address = row.address || '';
+                let tokens = [];
+
+                // Add entities to highlight, ensuring they are strings
+                const houseNumber = row.house_number ? String(row.house_number).trim() : '';
+                const street = row.street ? String(row.street).trim() : '';
+                const venue = row.venue ? String(row.venue).trim() : '';
+
+                if (houseNumber) tokens.push({ text: houseNumber, type: 'house_number' });
+                if (street) tokens.push({ text: street, type: 'street' });
+                if (venue) tokens.push({ text: venue, type: 'venue' });
+
+                if (!address || tokens.length === 0) {
+                    return address;
+                }
+
+                // Find start index for each token and filter out those not found
+                tokens = tokens
+                    .map(token => ({ ...token, index: address.indexOf(token.text) }))
+                    .filter(token => token.index !== -1);
+                
+                // Sort tokens by their starting index to process them in order
+                tokens.sort((a, b) => a.index - b.index);
+
+                let resultHTML = '';
+                let lastIndex = 0;
+
+                tokens.forEach(token => {
+                    // Make sure tokens don't overlap
+                    if (token.index < lastIndex) {
+                        return; // Skip overlapping token
+                    }
+                    // Add the plain text before the token
+                    resultHTML += address.substring(lastIndex, token.index);
+                    // Add the highlighted token
+                    resultHTML += `<span class="highlight ${token.type}">${token.text}</span>`;
+                    // Update the last index
+                    lastIndex = token.index + token.text.length;
+                });
+
+                // Add any remaining plain text after the last token
+                resultHTML += address.substring(lastIndex);
+
+                return resultHTML;
+            }
+
+            /**
+             * Renders the data table for the current page.
+             */
+            function renderTable() {
+                dataTableBody.innerHTML = '';
+
+                if (filteredData.length === 0) {
+                    messageArea.innerHTML = '<p>Không tìm thấy kết quả phù hợp.</p>';
+                    messageArea.classList.remove('hidden');
+                    paginationControls.classList.add('hidden');
+                    return;
+                }
+                
+                messageArea.classList.add('hidden');
+                paginationControls.classList.remove('hidden');
+
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                const paginatedItems = filteredData.slice(start, end);
+
+                paginatedItems.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'bg-white border-b hover:bg-slate-50';
+
+                    const idCell = document.createElement('td');
+                    idCell.className = 'px-6 py-4 font-medium text-gray-900 whitespace-nowrap';
+                    idCell.textContent = row._id;
+                    
+                    const addressCell = document.createElement('td');
+                    addressCell.className = 'px-6 py-4';
+                    addressCell.innerHTML = highlightAddress(row);
+
+                    tr.appendChild(idCell);
+                    tr.appendChild(addressCell);
+                    dataTableBody.appendChild(tr);
+                });
+            }
+
+            /**
+             * Renders pagination controls and info.
+             */
+            function renderPagination() {
+                if (filteredData.length === 0) {
+                    paginationControls.classList.add('hidden');
+                    return;
+                }
+                
+                paginationControls.classList.remove('hidden');
+                const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+                const startItem = (currentPage - 1) * rowsPerPage + 1;
+                const endItem = Math.min(currentPage * rowsPerPage, filteredData.length);
+
+                pageInfo.textContent = `Hiển thị ${startItem}-${endItem} của ${filteredData.length} kết quả (Trang ${currentPage}/${totalPages})`;
+                
+                prevPageBtn.disabled = currentPage === 1;
+                prevPageBtn.classList.toggle('opacity-50', currentPage === 1);
+                prevPageBtn.classList.toggle('cursor-not-allowed', currentPage === 1);
+                
+                nextPageBtn.disabled = currentPage === totalPages;
+                nextPageBtn.classList.toggle('opacity-50', currentPage === totalPages);
+                nextPageBtn.classList.toggle('cursor-not-allowed', currentPage === totalPages);
+            }
+
+            /**
+             * Main render function.
+             */
+            function render() {
+                renderTable();
+                renderPagination();
+            }
+        });
+    </script>
 </body>
 </html>
