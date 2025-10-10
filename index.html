@@ -6,7 +6,6 @@
     <title>Trình Highlight Text (NER)</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- PapaParse for CSV parsing is moved to the end of the body -->
     <style>
         /* Custom styles for highlights */
         .highlight {
@@ -117,13 +116,10 @@
                 </button>
             </div>
         </div>
-
     </div>
     
-    <!-- Scripts moved to the end of the body for better loading performance and to prevent errors -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.3.2/papaparse.min.js"></script>
     <script>
-        // Wait for the DOM to be fully loaded before running the script
+        // --- Main Application Logic ---
         document.addEventListener('DOMContentLoaded', function() {
             // --- DOM Elements ---
             const csvFileInput = document.getElementById('csvFile');
@@ -151,7 +147,52 @@
             nextPageBtn.addEventListener('click', () => changePage(1));
 
             /**
-             * Handles the file selection and starts the parsing process.
+             * A simple, built-in CSV parser to avoid external libraries.
+             * Handles quoted fields containing commas.
+             * @param {string} text The raw CSV text.
+             * @returns {{data: object[], errors: any[]}} Parsed data and errors.
+             */
+            function parseCSV(text) {
+                const result = [];
+                const lines = text.trim().replace(/\r/g, '').split('\n');
+                if (lines.length < 2) return { data: [], errors: [{ message: "CSV is empty or has only a header." }] };
+                
+                const headers = lines[0].split(',');
+
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i]) continue;
+                    
+                    const values = [];
+                    let currentLine = lines[i];
+                    // Regex to handle comma-separated values, including those in quotes.
+                    const regex = /("([^"]|"")*"|[^,]*)(,|$)/g;
+                    let match;
+                    
+                    while (match = regex.exec(currentLine)) {
+                         let value = match[1];
+                         if (value.startsWith('"') && value.endsWith('"')) {
+                            value = value.slice(1, -1).replace(/""/g, '"');
+                         }
+                         values.push(value);
+                         if (match[0] === ',' || match[0] === '') { 
+                            // This handles empty fields correctly
+                            if(match.index === regex.lastIndex) regex.lastIndex++;
+                         }
+                         if (regex.lastIndex === currentLine.length) break;
+                    }
+
+                    const rowObject = {};
+                    for (let j = 0; j < headers.length; j++) {
+                        rowObject[headers[j]] = values[j] || '';
+                    }
+                    result.push(rowObject);
+                }
+                return { data: result, errors: [] };
+            }
+
+
+            /**
+             * Handles file selection, reads the file, and triggers parsing.
              */
             function handleFileSelect(event) {
                 const file = event.target.files[0];
@@ -161,48 +202,48 @@
                 messageArea.classList.remove('hidden');
                 dataTableBody.innerHTML = '';
                 
-                Papa.parse(file, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        // Check for required columns
-                        const requiredColumns = ['_id', 'address', 'house_number', 'street', 'venue'];
-                        const hasAllColumns = requiredColumns.every(col => results.meta.fields.includes(col));
-                        
-                        if (!hasAllColumns) {
-                            messageArea.innerHTML = `<p class="text-red-500">Lỗi: File CSV phải chứa các cột: ${requiredColumns.join(', ')}</p>`;
-                            return;
-                        }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    const results = parseCSV(text);
 
-                        fullData = results.data;
-                        filteredData = [...fullData];
-                        currentPage = 1;
-                        rowsPerPage = parseInt(rowsPerPageInput.value, 10);
-                        enableControls();
-                        render();
-                    },
-                    error: function(error) {
-                        messageArea.innerHTML = `<p class="text-red-500">Đã xảy ra lỗi khi đọc file: ${error.message}</p>`;
+                    if (results.errors.length > 0) {
+                         messageArea.innerHTML = `<p class="text-red-500">Lỗi khi đọc file: ${results.errors[0].message}</p>`;
+                         return;
                     }
-                });
+
+                    // Check for required columns
+                    const firstRow = results.data[0];
+                    const requiredColumns = ['_id', 'address', 'house_number', 'street', 'venue'];
+                    const hasAllColumns = firstRow && requiredColumns.every(col => col in firstRow);
+                    
+                    if (!hasAllColumns) {
+                        messageArea.innerHTML = `<p class="text-red-500">Lỗi: File CSV phải chứa các cột: ${requiredColumns.join(', ')}</p>`;
+                        return;
+                    }
+
+                    fullData = results.data;
+                    filteredData = [...fullData];
+                    currentPage = 1;
+                    rowsPerPage = parseInt(rowsPerPageInput.value, 10);
+                    enableControls();
+                    render();
+                };
+                reader.onerror = function() {
+                    messageArea.innerHTML = `<p class="text-red-500">Không thể đọc file.</p>`;
+                };
+                reader.readAsText(file);
             }
             
-            /**
-             * Enables the control inputs after data is loaded.
-             */
             function enableControls() {
                 searchInput.disabled = false;
                 rowsPerPageInput.disabled = false;
                 legend.classList.remove('hidden');
             }
 
-            /**
-             * Filters data based on search input and re-renders the table.
-             */
             function handleSearch() {
                 const searchTerm = searchInput.value.toLowerCase();
                 filteredData = fullData.filter(row => {
-                    // Search in _id and address. Add more fields if needed.
                     const idMatch = row._id ? row._id.toLowerCase().includes(searchTerm) : false;
                     const addressMatch = row.address ? row.address.toLowerCase().includes(searchTerm) : false;
                     return idMatch || addressMatch;
@@ -211,19 +252,12 @@
                 render();
             }
 
-            /**
-             * Updates rows per page and re-renders the table.
-             */
             function handleRowsChange() {
                 rowsPerPage = parseInt(rowsPerPageInput.value, 10);
                 currentPage = 1;
                 render();
             }
             
-            /**
-             * Changes the current page.
-             * @param {number} direction - -1 for previous, 1 for next.
-             */
             function changePage(direction) {
                 const totalPages = Math.ceil(filteredData.length / rowsPerPage);
                 const newPage = currentPage + direction;
@@ -233,16 +267,10 @@
                 }
             }
             
-            /**
-             * Creates the highlighted HTML string for an address.
-             * @param {object} row - The data row object.
-             * @returns {string} - The HTML string with highlighted entities.
-             */
             function highlightAddress(row) {
                 const address = row.address || '';
                 let tokens = [];
 
-                // Add entities to highlight, ensuring they are strings
                 const houseNumber = row.house_number ? String(row.house_number).trim() : '';
                 const street = row.street ? String(row.street).trim() : '';
                 const venue = row.venue ? String(row.venue).trim() : '';
@@ -251,46 +279,30 @@
                 if (street) tokens.push({ text: street, type: 'street' });
                 if (venue) tokens.push({ text: venue, type: 'venue' });
 
-                if (!address || tokens.length === 0) {
-                    return address;
-                }
+                if (!address || tokens.length === 0) return address;
 
-                // Find start index for each token and filter out those not found
                 tokens = tokens
                     .map(token => ({ ...token, index: address.indexOf(token.text) }))
-                    .filter(token => token.index !== -1);
+                    .filter(token => token.text && token.index !== -1);
                 
-                // Sort tokens by their starting index to process them in order
                 tokens.sort((a, b) => a.index - b.index);
 
                 let resultHTML = '';
                 let lastIndex = 0;
 
                 tokens.forEach(token => {
-                    // Make sure tokens don't overlap
-                    if (token.index < lastIndex) {
-                        return; // Skip overlapping token
-                    }
-                    // Add the plain text before the token
+                    if (token.index < lastIndex) return;
                     resultHTML += address.substring(lastIndex, token.index);
-                    // Add the highlighted token
                     resultHTML += `<span class="highlight ${token.type}">${token.text}</span>`;
-                    // Update the last index
                     lastIndex = token.index + token.text.length;
                 });
 
-                // Add any remaining plain text after the last token
                 resultHTML += address.substring(lastIndex);
-
                 return resultHTML;
             }
 
-            /**
-             * Renders the data table for the current page.
-             */
             function renderTable() {
                 dataTableBody.innerHTML = '';
-
                 if (filteredData.length === 0) {
                     messageArea.innerHTML = '<p>Không tìm thấy kết quả phù hợp.</p>';
                     messageArea.classList.remove('hidden');
@@ -308,26 +320,16 @@
                 paginatedItems.forEach(row => {
                     const tr = document.createElement('tr');
                     tr.className = 'bg-white border-b hover:bg-slate-50';
-
-                    const idCell = document.createElement('td');
-                    idCell.className = 'px-6 py-4 font-medium text-gray-900 whitespace-nowrap';
-                    idCell.textContent = row._id;
-                    
-                    const addressCell = document.createElement('td');
-                    addressCell.className = 'px-6 py-4';
-                    addressCell.innerHTML = highlightAddress(row);
-
-                    tr.appendChild(idCell);
-                    tr.appendChild(addressCell);
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${row._id || ''}</td>
+                        <td class="px-6 py-4">${highlightAddress(row)}</td>
+                    `;
                     dataTableBody.appendChild(tr);
                 });
             }
 
-            /**
-             * Renders pagination controls and info.
-             */
             function renderPagination() {
-                if (filteredData.length === 0) {
+                if (filteredData.length <= rowsPerPage) {
                     paginationControls.classList.add('hidden');
                     return;
                 }
@@ -341,16 +343,11 @@
                 
                 prevPageBtn.disabled = currentPage === 1;
                 prevPageBtn.classList.toggle('opacity-50', currentPage === 1);
-                prevPageBtn.classList.toggle('cursor-not-allowed', currentPage === 1);
                 
                 nextPageBtn.disabled = currentPage === totalPages;
                 nextPageBtn.classList.toggle('opacity-50', currentPage === totalPages);
-                nextPageBtn.classList.toggle('cursor-not-allowed', currentPage === totalPages);
             }
 
-            /**
-             * Main render function.
-             */
             function render() {
                 renderTable();
                 renderPagination();
