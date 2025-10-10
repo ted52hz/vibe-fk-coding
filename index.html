@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NER VIZ</title>
+    <title>NER Visualization github.com/ted52hz/vibe-fk-coding</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -46,48 +46,59 @@
 
     <div id="app" class="container mx-auto p-4 md:p-8">
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-slate-700">Trình Highlight Text (NER)</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-700">NER Visualization github.com/ted52hz/vibe-fk-coding</h1>
             <p class="text-slate-500 mt-2">Tải lên file CSV để xem các thực thể được highlight trong địa chỉ.</p>
         </header>
 
         <!-- Controls Section -->
-        <div class="bg-white p-4 rounded-lg shadow-md mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 flex-wrap">
-             <!-- File Upload -->
-            <div class="flex-grow">
-                <label for="csvFile" class="block mb-2 text-sm font-medium text-gray-900">Tải lên file CSV</label>
-                <input type="file" id="csvFile" accept=".csv" class="block w-full text-sm text-slate-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:rounded-md file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-blue-50 file:text-blue-700
-                    hover:file:bg-blue-100 cursor-pointer
-                "/>
-            </div>
-            <!-- Search Input -->
-            <div class="flex-grow">
-                <label for="searchInput" class="block mb-2 text-sm font-medium text-gray-900">Tìm kiếm</label>
-                <input type="text" id="searchInput" placeholder="Tìm theo ID, địa chỉ,..." class="w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" disabled>
-            </div>
-            <!-- Rows per page -->
-            <div class="w-full md:w-auto">
-                <label for="rowsPerPage" class="block mb-2 text-sm font-medium text-gray-900">Dòng / trang</label>
-                <input type="number" id="rowsPerPage" value="10" min="1" max="100" class="w-full md:w-24 p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" disabled>
+        <div class="bg-white p-4 rounded-lg shadow-md mb-6 flex flex-col gap-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 flex-wrap">
+                <!-- File Upload -->
+                <div class="flex-grow">
+                    <label for="csvFile" class="block mb-2 text-sm font-medium text-gray-900">Tải lên file CSV</label>
+                    <input type="file" id="csvFile" accept=".csv" class="block w-full text-sm text-slate-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100 cursor-pointer
+                    "/>
+                </div>
+                <!-- Search Input -->
+                <div class="flex-grow">
+                    <label for="searchInput" class="block mb-2 text-sm font-medium text-gray-900">Tìm kiếm</label>
+                    <input type="text" id="searchInput" placeholder="Tìm theo ID, địa chỉ,..." class="w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" disabled>
+                </div>
+                <!-- Rows per page -->
+                <div class="w-full md:w-auto">
+                    <label for="rowsPerPage" class="block mb-2 text-sm font-medium text-gray-900">Dòng / trang</label>
+                    <input type="number" id="rowsPerPage" value="10" min="1" max="100" class="w-full md:w-24 p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500" disabled>
+                </div>
             </div>
             <!-- Filter Options -->
-            <div id="filterOptions" class="w-full flex flex-col sm:flex-row sm:items-center gap-4 pt-4 border-t border-slate-200 mt-4">
+            <div id="filterOptions" class="w-full flex flex-col gap-4 pt-4 border-t border-slate-200 mt-4">
                 <span class="text-sm font-medium text-gray-900 flex-shrink-0">Lọc theo thực thể:</span>
-                <div class="flex flex-wrap gap-x-6 gap-y-2">
-                    <div class="flex items-center">
-                        <input id="filterVenue" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" disabled>
-                        <label for="filterVenue" class="ml-2 text-sm font-medium text-gray-900 cursor-pointer">Có Venue</label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Venue Filter -->
+                    <div class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
+                        <span class="text-sm font-semibold text-slate-600">Venue:</span>
+                        <div class="flex items-center"><input id="filterVenueAny" name="filter-venue" type="radio" value="any" class="cursor-pointer" checked disabled><label for="filterVenueAny" class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
+                        <div class="flex items-center"><input id="filterVenueYes" name="filter-venue" type="radio" value="yes" class="cursor-pointer" disabled><label for="filterVenueYes" class="ml-2 text-sm cursor-pointer">Có</label></div>
+                        <div class="flex items-center"><input id="filterVenueNo" name="filter-venue" type="radio" value="no" class="cursor-pointer" disabled><label for="filterVenueNo" class="ml-2 text-sm cursor-pointer">Không</label></div>
                     </div>
-                    <div class="flex items-center">
-                        <input id="filterHouseNumber" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" disabled>
-                        <label for="filterHouseNumber" class="ml-2 text-sm font-medium text-gray-900 cursor-pointer">Có Số nhà</label>
+                    <!-- House Number Filter -->
+                     <div class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
+                        <span class="text-sm font-semibold text-slate-600">Số nhà:</span>
+                        <div class="flex items-center"><input id="filterHouseNumberAny" name="filter-house_number" type="radio" value="any" class="cursor-pointer" checked disabled><label for="filterHouseNumberAny" class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
+                        <div class="flex items-center"><input id="filterHouseNumberYes" name="filter-house_number" type="radio" value="yes" class="cursor-pointer" disabled><label for="filterHouseNumberYes" class="ml-2 text-sm cursor-pointer">Có</label></div>
+                        <div class="flex items-center"><input id="filterHouseNumberNo" name="filter-house_number" type="radio" value="no" class="cursor-pointer" disabled><label for="filterHouseNumberNo" class="ml-2 text-sm cursor-pointer">Không</label></div>
                     </div>
-                    <div class="flex items-center">
-                        <input id="filterStreet" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" disabled>
-                        <label for="filterStreet" class="ml-2 text-sm font-medium text-gray-900 cursor-pointer">Có Tên đường</label>
+                    <!-- Street Filter -->
+                     <div class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
+                        <span class="text-sm font-semibold text-slate-600">Tên đường:</span>
+                        <div class="flex items-center"><input id="filterStreetAny" name="filter-street" type="radio" value="any" class="cursor-pointer" checked disabled><label for="filterStreetAny" class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
+                        <div class="flex items-center"><input id="filterStreetYes" name="filter-street" type="radio" value="yes" class="cursor-pointer" disabled><label for="filterStreetYes" class="ml-2 text-sm cursor-pointer">Có</label></div>
+                        <div class="flex items-center"><input id="filterStreetNo" name="filter-street" type="radio" value="no" class="cursor-pointer" disabled><label for="filterStreetNo" class="ml-2 text-sm cursor-pointer">Không</label></div>
                     </div>
                 </div>
             </div>
@@ -137,7 +148,6 @@
     </div>
     
     <script>
-        // --- Main Application Logic ---
         document.addEventListener('DOMContentLoaded', function() {
             // --- DOM Elements ---
             const csvFileInput = document.getElementById('csvFile');
@@ -150,9 +160,7 @@
             const prevPageBtn = document.getElementById('prevPage');
             const nextPageBtn = document.getElementById('nextPage');
             const legend = document.getElementById('legend');
-            const filterVenueCheckbox = document.getElementById('filterVenue');
-            const filterHouseNumberCheckbox = document.getElementById('filterHouseNumber');
-            const filterStreetCheckbox = document.getElementById('filterStreet');
+            const filterRadios = document.querySelectorAll('#filterOptions input[type="radio"]');
 
             // --- Application State ---
             let fullData = [];
@@ -166,9 +174,7 @@
             rowsPerPageInput.addEventListener('change', handleRowsChange);
             prevPageBtn.addEventListener('click', () => changePage(-1));
             nextPageBtn.addEventListener('click', () => changePage(1));
-            filterVenueCheckbox.addEventListener('change', applyFilters);
-            filterHouseNumberCheckbox.addEventListener('change', applyFilters);
-            filterStreetCheckbox.addEventListener('change', applyFilters);
+            filterRadios.forEach(radio => radio.addEventListener('change', applyFilters));
 
             /**
              * A simple, built-in CSV parser to avoid external libraries.
@@ -242,7 +248,7 @@
                     fullData = results.data;
                     rowsPerPage = parseInt(rowsPerPageInput.value, 10);
                     enableControls();
-                    applyFilters(); // Apply initial filters and render
+                    applyFilters(); 
                 };
                 reader.onerror = function() {
                     messageArea.innerHTML = `<p class="text-red-500">Không thể đọc file.</p>`;
@@ -257,19 +263,17 @@
                 searchInput.disabled = false;
                 rowsPerPageInput.disabled = false;
                 legend.classList.remove('hidden');
-                filterVenueCheckbox.disabled = false;
-                filterHouseNumberCheckbox.disabled = false;
-                filterStreetCheckbox.disabled = false;
+                filterRadios.forEach(radio => radio.disabled = false);
             }
 
             /**
-             * Applies all active filters (search and checkboxes) and re-renders the view.
+             * Applies all active filters (search and radio buttons) and re-renders the view.
              */
             function applyFilters() {
                 const searchTerm = searchInput.value.toLowerCase();
-                const hasVenue = filterVenueCheckbox.checked;
-                const hasHouseNumber = filterHouseNumberCheckbox.checked;
-                const hasStreet = filterStreetCheckbox.checked;
+                const venueFilter = document.querySelector('input[name="filter-venue"]:checked').value;
+                const houseNumberFilter = document.querySelector('input[name="filter-house_number"]:checked').value;
+                const streetFilter = document.querySelector('input[name="filter-street"]:checked').value;
 
                 let tempFilteredData = [...fullData];
 
@@ -281,24 +285,21 @@
                         return idMatch || addressMatch;
                     });
                 }
+                
+                // Helper function to check if a value is present
+                const isPresent = (value) => value && value.trim() !== '';
 
-                // 2. Filter by Venue checkbox
-                if (hasVenue) {
-                    tempFilteredData = tempFilteredData.filter(row => row.venue && row.venue.trim() !== '');
-                }
-
-                // 3. Filter by House Number checkbox
-                if (hasHouseNumber) {
-                    tempFilteredData = tempFilteredData.filter(row => row.house_number && row.house_number.trim() !== '');
-                }
-
-                // 4. Filter by Street checkbox
-                if (hasStreet) {
-                    tempFilteredData = tempFilteredData.filter(row => row.street && row.street.trim() !== '');
-                }
+                // 2. Filter by entity radio buttons
+                tempFilteredData = tempFilteredData.filter(row => {
+                    const venueCondition = (venueFilter === 'any') || (venueFilter === 'yes' && isPresent(row.venue)) || (venueFilter === 'no' && !isPresent(row.venue));
+                    const houseNumberCondition = (houseNumberFilter === 'any') || (houseNumberFilter === 'yes' && isPresent(row.house_number)) || (houseNumberFilter === 'no' && !isPresent(row.house_number));
+                    const streetCondition = (streetFilter === 'any') || (streetFilter === 'yes' && isPresent(row.street)) || (streetFilter === 'no' && !isPresent(row.street));
+                    
+                    return venueCondition && houseNumberCondition && streetCondition;
+                });
                 
                 filteredData = tempFilteredData;
-                currentPage = 1; // Reset to first page after any filter change
+                currentPage = 1;
                 render();
             }
 
