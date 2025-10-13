@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NER</title>
+    <title> Highlight Text (NER)</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -31,7 +31,7 @@
 
     <div id="app" class="container mx-auto p-4 md:p-8">
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-slate-700">NER</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-700"> Highlight Text (NER)</h1>
             <p class="text-slate-500 mt-2">Tải lên file CSV để xem các thực thể được highlight trong địa chỉ.</p>
         </header>
 
@@ -320,48 +320,65 @@
                 }
             }
             
+            // --- NEW: Advanced Highlighting Logic ---
             function highlightAddress(row) {
                 const address = row.address || '';
-                let tokens = [];
+                if (!address) return '';
+                
+                const priorityOrder = [
+                    { key: 'venue', type: 'venue' },
+                    { key: 'house_number', type: 'house_number' },
+                    { key: 'street', type: 'street' },
+                    { key: 'locality_extracted', type: 'locality' },
+                    { key: 'county_extracted', type: 'county' },
+                    { key: 'region_extracted', type: 'region' }
+                ];
+                
+                let segments = [];
+                
+                // 1. Find all potential segments based on priority
+                priorityOrder.forEach(entity => {
+                    const entityText = row[entity.key] ? String(row[entity.key]).trim() : '';
+                    if (!entityText) return;
 
-                // Extract all potential entities
-                const houseNumber = row.house_number ? String(row.house_number).trim() : '';
-                const street = row.street ? String(row.street).trim() : '';
-                const venue = row.venue ? String(row.venue).trim() : '';
-                const locality = row.locality_extracted ? String(row.locality_extracted).trim() : '';
-                const county = row.county_extracted ? String(row.county_extracted).trim() : '';
-                const region = row.region_extracted ? String(row.region_extracted).trim() : '';
-
-                // Add valid entities to tokens array
-                if (houseNumber) tokens.push({ text: houseNumber, type: 'house_number' });
-                if (street) tokens.push({ text: street, type: 'street' });
-                if (venue) tokens.push({ text: venue, type: 'venue' });
-                if (locality) tokens.push({ text: locality, type: 'locality' });
-                if (county) tokens.push({ text: county, type: 'county' });
-                if (region) tokens.push({ text: region, type: 'region' });
-
-                if (!address || tokens.length === 0) return address;
-
-                // Find index, filter out not found, and sort
-                tokens = tokens
-                    .map(token => ({ ...token, index: address.indexOf(token.text) }))
-                    .filter(token => token.text && token.index !== -1)
-                    .sort((a, b) => a.index - b.index);
-
-                let resultHTML = '';
-                let lastIndex = 0;
-
-                // Build highlighted string
-                tokens.forEach(token => {
-                    if (token.index < lastIndex) return; // Avoid overlapping matches
-                    resultHTML += address.substring(lastIndex, token.index);
-                    resultHTML += `<span class="highlight ${token.type}">${token.text}</span>`;
-                    lastIndex = token.index + token.text.length;
+                    let startIndex = 0;
+                    let index;
+                    while ((index = address.indexOf(entityText, startIndex)) > -1) {
+                        const endIndex = index + entityText.length;
+                        
+                        // Check for overlap with already added higher-priority segments
+                        const isOverlapping = segments.some(seg => index < seg.end && endIndex > seg.start);
+                        
+                        if (!isOverlapping) {
+                            segments.push({ start: index, end: endIndex, type: entity.type });
+                        }
+                        
+                        startIndex = index + 1; // Continue searching from the next character
+                    }
                 });
 
+                if (segments.length === 0) return address;
+
+                // 2. Sort segments by start index to build the string correctly
+                segments.sort((a, b) => a.start - b.start);
+
+                // 3. Build the final HTML string
+                let resultHTML = '';
+                let lastIndex = 0;
+                segments.forEach(seg => {
+                    // Add the text before the current segment
+                    resultHTML += address.substring(lastIndex, seg.start);
+                    // Add the highlighted segment
+                    resultHTML += `<span class="highlight ${seg.type}">${address.substring(seg.start, seg.end)}</span>`;
+                    lastIndex = seg.end;
+                });
+
+                // Add any remaining text after the last segment
                 resultHTML += address.substring(lastIndex);
+                
                 return resultHTML;
             }
+
 
             function renderTable() {
                 dataTableBody.innerHTML = '';
