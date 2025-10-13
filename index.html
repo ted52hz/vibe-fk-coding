@@ -320,60 +320,86 @@
                 }
             }
             
-            // --- NEW: Advanced Highlighting Logic ---
+            /**
+             * Advanced highlighting logic to handle overlapping and substring entities.
+             * The core principle is: the longest matching entity always wins.
+             * Priority is used as a tie-breaker for same-length entities.
+             */
             function highlightAddress(row) {
                 const address = row.address || '';
                 if (!address) return '';
                 
-                const priorityOrder = [
-                    { key: 'venue', type: 'venue' },
-                    { key: 'house_number', type: 'house_number' },
-                    { key: 'street', type: 'street' },
-                    { key: 'locality_extracted', type: 'locality' },
-                    { key: 'county_extracted', type: 'county' },
-                    { key: 'region_extracted', type: 'region' }
+                const allPotentialSegments = [];
+                const entityFields = [
+                    { key: 'venue', type: 'venue', priority: 1 },
+                    { key: 'house_number', type: 'house_number', priority: 2 },
+                    { key: 'street', type: 'street', priority: 3 },
+                    { key: 'locality_extracted', type: 'locality', priority: 4 },
+                    { key: 'county_extracted', type: 'county', priority: 5 },
+                    { key: 'region_extracted', type: 'region', priority: 6 }
                 ];
-                
-                let segments = [];
-                
-                // 1. Find all potential segments based on priority
-                priorityOrder.forEach(entity => {
-                    const entityText = row[entity.key] ? String(row[entity.key]).trim() : '';
+
+                // 1. Find ALL possible matches from all entity fields
+                entityFields.forEach(field => {
+                    const entityText = row[field.key] ? String(row[field.key]).trim() : '';
                     if (!entityText) return;
 
                     let startIndex = 0;
                     let index;
                     while ((index = address.indexOf(entityText, startIndex)) > -1) {
-                        const endIndex = index + entityText.length;
-                        
-                        // Check for overlap with already added higher-priority segments
-                        const isOverlapping = segments.some(seg => index < seg.end && endIndex > seg.start);
-                        
-                        if (!isOverlapping) {
-                            segments.push({ start: index, end: endIndex, type: entity.type });
-                        }
-                        
-                        startIndex = index + 1; // Continue searching from the next character
+                        allPotentialSegments.push({
+                            start: index,
+                            end: index + entityText.length,
+                            type: field.type,
+                            priority: field.priority,
+                            length: entityText.length
+                        });
+                        startIndex = index + 1;
                     }
                 });
 
-                if (segments.length === 0) return address;
+                if (allPotentialSegments.length === 0) return address;
 
-                // 2. Sort segments by start index to build the string correctly
-                segments.sort((a, b) => a.start - b.start);
+                // 2. Resolve conflicts: Longest match wins. Priority is a tie-breaker.
+                allPotentialSegments.sort((a, b) => {
+                    if (b.length !== a.length) {
+                        return b.length - a.length; // Sort by length descending
+                    }
+                    return a.priority - b.priority; // Then by priority ascending
+                });
 
-                // 3. Build the final HTML string
+                const finalSegments = [];
+                const isOccupied = new Array(address.length).fill(false);
+
+                allPotentialSegments.forEach(potentialSeg => {
+                    let overlap = false;
+                    for (let i = potentialSeg.start; i < potentialSeg.end; i++) {
+                        if (isOccupied[i]) {
+                            overlap = true;
+                            break;
+                        }
+                    }
+
+                    if (!overlap) {
+                        finalSegments.push(potentialSeg);
+                        for (let i = potentialSeg.start; i < potentialSeg.end; i++) {
+                            isOccupied[i] = true;
+                        }
+                    }
+                });
+
+                // 3. Build the final HTML string from the winning segments
+                if (finalSegments.length === 0) return address;
+
+                finalSegments.sort((a, b) => a.start - b.start);
+
                 let resultHTML = '';
                 let lastIndex = 0;
-                segments.forEach(seg => {
-                    // Add the text before the current segment
+                finalSegments.forEach(seg => {
                     resultHTML += address.substring(lastIndex, seg.start);
-                    // Add the highlighted segment
                     resultHTML += `<span class="highlight ${seg.type}">${address.substring(seg.start, seg.end)}</span>`;
                     lastIndex = seg.end;
                 });
-
-                // Add any remaining text after the last segment
                 resultHTML += address.substring(lastIndex);
                 
                 return resultHTML;
@@ -435,3 +461,4 @@
     </script>
 </body>
 </html>
+
