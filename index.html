@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NER Visualization github.com/ted52hz/vibe-fk-coding</title>
+    <title>NER</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -13,40 +13,25 @@
             border-radius: 4px;
             font-weight: 500;
         }
-        .highlight.house_number {
-            background-color: #bae6fd; /* light blue */
-            color: #0c4a6e;
-        }
-        .highlight.street {
-            background-color: #bbf7d0; /* light green */
-            color: #14532d;
-        }
-        .highlight.venue {
-            background-color: #fef08a; /* light yellow */
-            color: #713f12;
-        }
+        .highlight.house_number { background-color: #bae6fd; color: #0c4a6e; } /* light blue */
+        .highlight.street { background-color: #bbf7d0; color: #14532d; } /* light green */
+        .highlight.venue { background-color: #fef08a; color: #713f12; } /* light yellow */
+        .highlight.locality { background-color: #e9d5ff; color: #581c87; } /* light purple */
+        .highlight.county { background-color: #fed7aa; color: #7c2d12; } /* light orange */
+        .highlight.region { background-color: #fbcfe8; color: #831843; } /* light pink */
+
         /* Basic scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
-        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-800">
 
     <div id="app" class="container mx-auto p-4 md:p-8">
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-slate-700">NER Visualization github.com/ted52hz/vibe-fk-coding</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-700">NER</h1>
             <p class="text-slate-500 mt-2">Tải lên file CSV để xem các thực thể được highlight trong địa chỉ.</p>
         </header>
 
@@ -57,12 +42,8 @@
                 <div class="flex-grow">
                     <label for="csvFile" class="block mb-2 text-sm font-medium text-gray-900">Tải lên file CSV</label>
                     <input type="file" id="csvFile" accept=".csv" class="block w-full text-sm text-slate-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-md file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-blue-50 file:text-blue-700
-                        hover:file:bg-blue-100 cursor-pointer
-                    "/>
+                        file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"/>
                 </div>
                 <!-- Search Input -->
                 <div class="flex-grow">
@@ -78,38 +59,62 @@
             <!-- Filter Options -->
             <div id="filterOptions" class="w-full flex flex-col gap-4 pt-4 border-t border-slate-200 mt-4">
                 <span class="text-sm font-medium text-gray-900 flex-shrink-0">Lọc theo thực thể:</span>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Venue Filter -->
                     <div class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
                         <span class="text-sm font-semibold text-slate-600">Venue:</span>
-                        <div class="flex items-center"><input id="filterVenueAny" name="filter-venue" type="radio" value="any" class="cursor-pointer" checked disabled><label for="filterVenueAny" class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
-                        <div class="flex items-center"><input id="filterVenueYes" name="filter-venue" type="radio" value="yes" class="cursor-pointer" disabled><label for="filterVenueYes" class="ml-2 text-sm cursor-pointer">Có</label></div>
-                        <div class="flex items-center"><input id="filterVenueNo" name="filter-venue" type="radio" value="no" class="cursor-pointer" disabled><label for="filterVenueNo" class="ml-2 text-sm cursor-pointer">Không</label></div>
+                        <div class="flex items-center"><input name="filter-venue" type="radio" value="any" class="cursor-pointer" checked disabled><label class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
+                        <div class="flex items-center"><input name="filter-venue" type="radio" value="yes" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Có</label></div>
+                        <div class="flex items-center"><input name="filter-venue" type="radio" value="no" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Không</label></div>
                     </div>
                     <!-- House Number Filter -->
                      <div class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
                         <span class="text-sm font-semibold text-slate-600">Số nhà:</span>
-                        <div class="flex items-center"><input id="filterHouseNumberAny" name="filter-house_number" type="radio" value="any" class="cursor-pointer" checked disabled><label for="filterHouseNumberAny" class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
-                        <div class="flex items-center"><input id="filterHouseNumberYes" name="filter-house_number" type="radio" value="yes" class="cursor-pointer" disabled><label for="filterHouseNumberYes" class="ml-2 text-sm cursor-pointer">Có</label></div>
-                        <div class="flex items-center"><input id="filterHouseNumberNo" name="filter-house_number" type="radio" value="no" class="cursor-pointer" disabled><label for="filterHouseNumberNo" class="ml-2 text-sm cursor-pointer">Không</label></div>
+                        <div class="flex items-center"><input name="filter-house_number" type="radio" value="any" class="cursor-pointer" checked disabled><label class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
+                        <div class="flex items-center"><input name="filter-house_number" type="radio" value="yes" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Có</label></div>
+                        <div class="flex items-center"><input name="filter-house_number" type="radio" value="no" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Không</label></div>
                     </div>
                     <!-- Street Filter -->
                      <div class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
                         <span class="text-sm font-semibold text-slate-600">Tên đường:</span>
-                        <div class="flex items-center"><input id="filterStreetAny" name="filter-street" type="radio" value="any" class="cursor-pointer" checked disabled><label for="filterStreetAny" class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
-                        <div class="flex items-center"><input id="filterStreetYes" name="filter-street" type="radio" value="yes" class="cursor-pointer" disabled><label for="filterStreetYes" class="ml-2 text-sm cursor-pointer">Có</label></div>
-                        <div class="flex items-center"><input id="filterStreetNo" name="filter-street" type="radio" value="no" class="cursor-pointer" disabled><label for="filterStreetNo" class="ml-2 text-sm cursor-pointer">Không</label></div>
+                        <div class="flex items-center"><input name="filter-street" type="radio" value="any" class="cursor-pointer" checked disabled><label class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
+                        <div class="flex items-center"><input name="filter-street" type="radio" value="yes" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Có</label></div>
+                        <div class="flex items-center"><input name="filter-street" type="radio" value="no" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Không</label></div>
+                    </div>
+                    <!-- Locality Filter -->
+                    <div class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
+                        <span class="text-sm font-semibold text-slate-600">Locality:</span>
+                        <div class="flex items-center"><input name="filter-locality" type="radio" value="any" class="cursor-pointer" checked disabled><label class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
+                        <div class="flex items-center"><input name="filter-locality" type="radio" value="yes" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Có</label></div>
+                        <div class="flex items-center"><input name="filter-locality" type="radio" value="no" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Không</label></div>
+                    </div>
+                    <!-- County Filter -->
+                    <div class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
+                        <span class="text-sm font-semibold text-slate-600">County:</span>
+                        <div class="flex items-center"><input name="filter-county" type="radio" value="any" class="cursor-pointer" checked disabled><label class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
+                        <div class="flex items-center"><input name="filter-county" type="radio" value="yes" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Có</label></div>
+                        <div class="flex items-center"><input name="filter-county" type="radio" value="no" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Không</label></div>
+                    </div>
+                    <!-- Region Filter -->
+                    <div class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
+                        <span class="text-sm font-semibold text-slate-600">Region:</span>
+                        <div class="flex items-center"><input name="filter-region" type="radio" value="any" class="cursor-pointer" checked disabled><label class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
+                        <div class="flex items-center"><input name="filter-region" type="radio" value="yes" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Có</label></div>
+                        <div class="flex items-center"><input name="filter-region" type="radio" value="no" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Không</label></div>
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- Legend -->
-        <div id="legend" class="hidden flex flex-wrap gap-4 mb-6 p-4 bg-white rounded-lg shadow-sm">
+        <div id="legend" class="hidden flex flex-wrap gap-x-4 gap-y-2 mb-6 p-4 bg-white rounded-lg shadow-sm">
             <span class="text-sm font-semibold">Chú thích:</span>
             <span class="highlight house_number">house_number</span>
             <span class="highlight street">street</span>
             <span class="highlight venue">venue</span>
+            <span class="highlight locality">locality</span>
+            <span class="highlight county">county</span>
+            <span class="highlight region">region</span>
         </div>
 
         <!-- Data Table Section -->
@@ -122,9 +127,7 @@
                             <th scope="col" class="px-6 py-3 w-3/4">Địa chỉ đã được Highlight</th>
                         </tr>
                     </thead>
-                    <tbody id="dataTableBody">
-                        <!-- Data rows will be inserted here -->
-                    </tbody>
+                    <tbody id="dataTableBody"></tbody>
                 </table>
             </div>
              <!-- Initial message / Loading state -->
@@ -137,12 +140,8 @@
         <div id="paginationControls" class="hidden mt-6 flex flex-col md:flex-row items-center justify-between">
             <span id="pageInfo" class="text-sm text-slate-600 mb-2 md:mb-0"></span>
             <div class="inline-flex rounded-md shadow-sm">
-                <button id="prevPage" class="px-4 py-2 text-sm font-medium text-blue-700 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-blue-700">
-                    Trang trước
-                </button>
-                <button id="nextPage" class="px-4 py-2 text-sm font-medium text-blue-700 bg-white border-t border-b border-r border-gray-200 rounded-r-lg hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-blue-700">
-                    Trang tiếp
-                </button>
+                <button id="prevPage" class="px-4 py-2 text-sm font-medium text-blue-700 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-blue-700">Trang trước</button>
+                <button id="nextPage" class="px-4 py-2 text-sm font-medium text-blue-700 bg-white border-t border-b border-r border-gray-200 rounded-r-lg hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-blue-700">Trang tiếp</button>
             </div>
         </div>
     </div>
@@ -237,7 +236,10 @@
                     }
 
                     const firstRow = results.data[0];
-                    const requiredColumns = ['_id', 'address', 'house_number', 'street', 'venue'];
+                    const requiredColumns = [
+                        '_id', 'address', 'house_number', 'street', 'venue', 
+                        'locality_extracted', 'county_extracted', 'region_extracted'
+                    ];
                     const hasAllColumns = firstRow && requiredColumns.every(col => col in firstRow);
                     
                     if (!hasAllColumns) {
@@ -256,9 +258,6 @@
                 reader.readAsText(file);
             }
             
-            /**
-             * Enables control elements after data is loaded.
-             */
             function enableControls() {
                 searchInput.disabled = false;
                 rowsPerPageInput.disabled = false;
@@ -266,14 +265,15 @@
                 filterRadios.forEach(radio => radio.disabled = false);
             }
 
-            /**
-             * Applies all active filters (search and radio buttons) and re-renders the view.
-             */
             function applyFilters() {
                 const searchTerm = searchInput.value.toLowerCase();
+                // Get filter values
                 const venueFilter = document.querySelector('input[name="filter-venue"]:checked').value;
                 const houseNumberFilter = document.querySelector('input[name="filter-house_number"]:checked').value;
                 const streetFilter = document.querySelector('input[name="filter-street"]:checked').value;
+                const localityFilter = document.querySelector('input[name="filter-locality"]:checked').value;
+                const countyFilter = document.querySelector('input[name="filter-county"]:checked').value;
+                const regionFilter = document.querySelector('input[name="filter-region"]:checked').value;
 
                 let tempFilteredData = [...fullData];
 
@@ -286,23 +286,24 @@
                     });
                 }
                 
-                // Helper function to check if a value is present
                 const isPresent = (value) => value && value.trim() !== '';
 
                 // 2. Filter by entity radio buttons
                 tempFilteredData = tempFilteredData.filter(row => {
-                    const venueCondition = (venueFilter === 'any') || (venueFilter === 'yes' && isPresent(row.venue)) || (venueFilter === 'no' && !isPresent(row.venue));
-                    const houseNumberCondition = (houseNumberFilter === 'any') || (houseNumberFilter === 'yes' && isPresent(row.house_number)) || (houseNumberFilter === 'no' && !isPresent(row.house_number));
-                    const streetCondition = (streetFilter === 'any') || (streetFilter === 'yes' && isPresent(row.street)) || (streetFilter === 'no' && !isPresent(row.street));
+                    const venueCond = (venueFilter === 'any') || (venueFilter === 'yes' && isPresent(row.venue)) || (venueFilter === 'no' && !isPresent(row.venue));
+                    const houseNumCond = (houseNumberFilter === 'any') || (houseNumberFilter === 'yes' && isPresent(row.house_number)) || (houseNumberFilter === 'no' && !isPresent(row.house_number));
+                    const streetCond = (streetFilter === 'any') || (streetFilter === 'yes' && isPresent(row.street)) || (streetFilter === 'no' && !isPresent(row.street));
+                    const localityCond = (localityFilter === 'any') || (localityFilter === 'yes' && isPresent(row.locality_extracted)) || (localityFilter === 'no' && !isPresent(row.locality_extracted));
+                    const countyCond = (countyFilter === 'any') || (countyFilter === 'yes' && isPresent(row.county_extracted)) || (countyFilter === 'no' && !isPresent(row.county_extracted));
+                    const regionCond = (regionFilter === 'any') || (regionFilter === 'yes' && isPresent(row.region_extracted)) || (regionFilter === 'no' && !isPresent(row.region_extracted));
                     
-                    return venueCondition && houseNumberCondition && streetCondition;
+                    return venueCond && houseNumCond && streetCond && localityCond && countyCond && regionCond;
                 });
                 
                 filteredData = tempFilteredData;
                 currentPage = 1;
                 render();
             }
-
 
             function handleRowsChange() {
                 rowsPerPage = parseInt(rowsPerPageInput.value, 10);
@@ -323,27 +324,36 @@
                 const address = row.address || '';
                 let tokens = [];
 
+                // Extract all potential entities
                 const houseNumber = row.house_number ? String(row.house_number).trim() : '';
                 const street = row.street ? String(row.street).trim() : '';
                 const venue = row.venue ? String(row.venue).trim() : '';
+                const locality = row.locality_extracted ? String(row.locality_extracted).trim() : '';
+                const county = row.county_extracted ? String(row.county_extracted).trim() : '';
+                const region = row.region_extracted ? String(row.region_extracted).trim() : '';
 
+                // Add valid entities to tokens array
                 if (houseNumber) tokens.push({ text: houseNumber, type: 'house_number' });
                 if (street) tokens.push({ text: street, type: 'street' });
                 if (venue) tokens.push({ text: venue, type: 'venue' });
+                if (locality) tokens.push({ text: locality, type: 'locality' });
+                if (county) tokens.push({ text: county, type: 'county' });
+                if (region) tokens.push({ text: region, type: 'region' });
 
                 if (!address || tokens.length === 0) return address;
 
+                // Find index, filter out not found, and sort
                 tokens = tokens
                     .map(token => ({ ...token, index: address.indexOf(token.text) }))
-                    .filter(token => token.text && token.index !== -1);
-                
-                tokens.sort((a, b) => a.index - b.index);
+                    .filter(token => token.text && token.index !== -1)
+                    .sort((a, b) => a.index - b.index);
 
                 let resultHTML = '';
                 let lastIndex = 0;
 
+                // Build highlighted string
                 tokens.forEach(token => {
-                    if (token.index < lastIndex) return;
+                    if (token.index < lastIndex) return; // Avoid overlapping matches
                     resultHTML += address.substring(lastIndex, token.index);
                     resultHTML += `<span class="highlight ${token.type}">${token.text}</span>`;
                     lastIndex = token.index + token.text.length;
