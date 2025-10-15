@@ -16,6 +16,7 @@
         .highlight.house_number { background-color: #bae6fd; color: #0c4a6e; } /* light blue */
         .highlight.street { background-color: #bbf7d0; color: #14532d; } /* light green */
         .highlight.venue { background-color: #fef08a; color: #713f12; } /* light yellow */
+        .highlight.sublocality { background-color: #a5f3fc; color: #155e75; } /* light cyan */
         .highlight.locality { background-color: #e9d5ff; color: #581c87; } /* light purple */
         .highlight.county { background-color: #fed7aa; color: #7c2d12; } /* light orange */
         .highlight.region { background-color: #fbcfe8; color: #831843; } /* light pink */
@@ -81,6 +82,13 @@
                         <div class="flex items-center"><input name="filter-street" type="radio" value="yes" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Có</label></div>
                         <div class="flex items-center"><input name="filter-street" type="radio" value="no" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Không</label></div>
                     </div>
+                    <!-- Sublocality Filter -->
+                    <div id="filter-group-sublocality_extracted" class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
+                        <span class="text-sm font-semibold text-slate-600">Sublocality:</span>
+                        <div class="flex items-center"><input name="filter-sublocality" type="radio" value="any" class="cursor-pointer" checked disabled><label class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
+                        <div class="flex items-center"><input name="filter-sublocality" type="radio" value="yes" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Có</label></div>
+                        <div class="flex items-center"><input name="filter-sublocality" type="radio" value="no" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Không</label></div>
+                    </div>
                     <!-- Locality Filter -->
                     <div id="filter-group-locality_extracted" class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
                         <span class="text-sm font-semibold text-slate-600">Locality:</span>
@@ -112,6 +120,7 @@
             <span class="highlight house_number">house_number</span>
             <span class="highlight street">street</span>
             <span class="highlight venue">venue</span>
+            <span class="highlight sublocality">sublocality</span>
             <span class="highlight locality">locality</span>
             <span class="highlight county">county</span>
             <span class="highlight region">region</span>
@@ -171,9 +180,10 @@
                 { key: 'venue', type: 'venue', priority: 1 },
                 { key: 'house_number', type: 'house_number', priority: 2 },
                 { key: 'street', type: 'street', priority: 3 },
-                { key: 'locality_extracted', type: 'locality', priority: 4 },
-                { key: 'county_extracted', type: 'county', priority: 5 },
-                { key: 'region_extracted', type: 'region', priority: 6 }
+                { key: 'sublocality_extracted', type: 'sublocality', priority: 4 },
+                { key: 'locality_extracted', type: 'locality', priority: 5 },
+                { key: 'county_extracted', type: 'county', priority: 6 },
+                { key: 'region_extracted', type: 'region', priority: 7 }
             ];
             let availableEntityFields = []; // This will be populated based on the uploaded CSV
 
@@ -285,6 +295,7 @@
                 const venueFilter = document.querySelector('input[name="filter-venue"]:checked').value;
                 const houseNumberFilter = document.querySelector('input[name="filter-house_number"]:checked').value;
                 const streetFilter = document.querySelector('input[name="filter-street"]:checked').value;
+                const sublocalityFilter = document.querySelector('input[name="filter-sublocality"]:checked').value;
                 const localityFilter = document.querySelector('input[name="filter-locality"]:checked').value;
                 const countyFilter = document.querySelector('input[name="filter-county"]:checked').value;
                 const regionFilter = document.querySelector('input[name="filter-region"]:checked').value;
@@ -307,11 +318,12 @@
                     const venueCond = (venueFilter === 'any') || (venueFilter === 'yes' && isPresent(row.venue)) || (venueFilter === 'no' && !isPresent(row.venue));
                     const houseNumCond = (houseNumberFilter === 'any') || (houseNumberFilter === 'yes' && isPresent(row.house_number)) || (houseNumberFilter === 'no' && !isPresent(row.house_number));
                     const streetCond = (streetFilter === 'any') || (streetFilter === 'yes' && isPresent(row.street)) || (streetFilter === 'no' && !isPresent(row.street));
+                    const sublocalityCond = (sublocalityFilter === 'any') || (sublocalityFilter === 'yes' && isPresent(row.sublocality_extracted)) || (sublocalityFilter === 'no' && !isPresent(row.sublocality_extracted));
                     const localityCond = (localityFilter === 'any') || (localityFilter === 'yes' && isPresent(row.locality_extracted)) || (localityFilter === 'no' && !isPresent(row.locality_extracted));
                     const countyCond = (countyFilter === 'any') || (countyFilter === 'yes' && isPresent(row.county_extracted)) || (countyFilter === 'no' && !isPresent(row.county_extracted));
                     const regionCond = (regionFilter === 'any') || (regionFilter === 'yes' && isPresent(row.region_extracted)) || (regionFilter === 'no' && !isPresent(row.region_extracted));
                     
-                    return venueCond && houseNumCond && streetCond && localityCond && countyCond && regionCond;
+                    return venueCond && houseNumCond && streetCond && sublocalityCond && localityCond && countyCond && regionCond;
                 });
                 
                 filteredData = tempFilteredData;
