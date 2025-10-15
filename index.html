@@ -83,7 +83,7 @@
                         <div class="flex items-center"><input name="filter-street" type="radio" value="no" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Không</label></div>
                     </div>
                     <!-- Sublocality Filter -->
-                    <div id="filter-group-sublocality_extracted" class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
+                    <div id="filter-group-sublocality" class="flex items-center justify-around p-2 bg-slate-50 rounded-md">
                         <span class="text-sm font-semibold text-slate-600">Sublocality:</span>
                         <div class="flex items-center"><input name="filter-sublocality" type="radio" value="any" class="cursor-pointer" checked disabled><label class="ml-2 text-sm cursor-pointer">Mặc định</label></div>
                         <div class="flex items-center"><input name="filter-sublocality" type="radio" value="yes" class="cursor-pointer" disabled><label class="ml-2 text-sm cursor-pointer">Có</label></div>
@@ -180,7 +180,7 @@
                 { key: 'venue', type: 'venue', priority: 1 },
                 { key: 'house_number', type: 'house_number', priority: 2 },
                 { key: 'street', type: 'street', priority: 3 },
-                { key: 'sublocality_extracted', type: 'sublocality', priority: 4 },
+                { key: 'sublocality', type: 'sublocality', priority: 4 },
                 { key: 'locality_extracted', type: 'locality', priority: 5 },
                 { key: 'county_extracted', type: 'county', priority: 6 },
                 { key: 'region_extracted', type: 'region', priority: 7 }
@@ -318,7 +318,7 @@
                     const venueCond = (venueFilter === 'any') || (venueFilter === 'yes' && isPresent(row.venue)) || (venueFilter === 'no' && !isPresent(row.venue));
                     const houseNumCond = (houseNumberFilter === 'any') || (houseNumberFilter === 'yes' && isPresent(row.house_number)) || (houseNumberFilter === 'no' && !isPresent(row.house_number));
                     const streetCond = (streetFilter === 'any') || (streetFilter === 'yes' && isPresent(row.street)) || (streetFilter === 'no' && !isPresent(row.street));
-                    const sublocalityCond = (sublocalityFilter === 'any') || (sublocalityFilter === 'yes' && isPresent(row.sublocality_extracted)) || (sublocalityFilter === 'no' && !isPresent(row.sublocality_extracted));
+                    const sublocalityCond = (sublocalityFilter === 'any') || (sublocalityFilter === 'yes' && isPresent(row.sublocality)) || (sublocalityFilter === 'no' && !isPresent(row.sublocality));
                     const localityCond = (localityFilter === 'any') || (localityFilter === 'yes' && isPresent(row.locality_extracted)) || (localityFilter === 'no' && !isPresent(row.locality_extracted));
                     const countyCond = (countyFilter === 'any') || (countyFilter === 'yes' && isPresent(row.county_extracted)) || (countyFilter === 'no' && !isPresent(row.county_extracted));
                     const regionCond = (regionFilter === 'any') || (regionFilter === 'yes' && isPresent(row.region_extracted)) || (regionFilter === 'no' && !isPresent(row.region_extracted));
